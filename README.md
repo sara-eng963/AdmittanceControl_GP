@@ -1,59 +1,71 @@
-# Six-Axis Cartesian Admittance Control
+# Admittance Control — MATLAB / Simulink
 
-MATLAB design and verification workspace for the **6-DoF robotic arm hand-guiding controller**. The repository contains foundational 1D studies and six-axis modeling, discretization, robustness, and parameter-design experiments.
+This project is the **Control Subteam's 500 Hz hand-guiding laboratory**.
+MATLAB prepares test inputs and analyzes outputs; the Simulink models YOU
+built execute synthetic F/T processing and six-axis Tustin admittance.
 
-## Main Design Tool — `6D/design_6axis_admittance.m`
+## Daily workflow (two steps)
 
-This is the **primary design script**. It automatically calculates six virtual inertia values (`M`) and six virtual damping values (`D`) for the diagonal, zero-stiffness Cartesian admittance model:
+1. Run `setup_handguiding_lab.m` **once per MATLAB session**. This runs
+   `main.m` (adds project paths), optimizes the illustrative M/D controller,
+   and prepares sensor parameters and the 500 Hz wrench input.
+2. Open a script in `experiments/` and click **Run**. Choose the experiment
+   that answers the question you're studying. Results stay in MATLAB tables,
+   variables and interactive figures; **no automatic CSV/MAT/PNG exports**.
 
-```math
-\mathbf M\dot{\mathbf V}+\mathbf D\mathbf V=\mathbf w
-```
+### Pick an experiment
 
-The goal is to match desired hand-guiding speed and responsiveness **while satisfying specified combined-motion limits**, rather than manually tuning parameters or clipping the output.
-
-### Editable inputs (Section 1)
-
-| Variable | Description |
+| Script in `experiments/` | Engineering question |
 | --- | --- |
-| `w_design` | Six-axis operator force/torque envelope: X, Y, Z (N); Rx, Ry, Rz (N·m) |
-| `V_target` | Desired steady linear/angular velocity for each axis (m/s; rad/s) |
-| `rise90_target` | Desired time to reach 90% of steady velocity for each axis (s) |
-| `speedMax` | Combined translation and rotation speed limits |
-| `accMax` | Combined linear and angular acceleration limits |
-| `releaseMax` | Translational release-travel limit and rotational displacement proxy |
-| `margin` | Fractional design margin below specified limits (default: 5%) |
-| `speedWeight`, `riseWeight` | Relative importance of matching speed and response-time targets |
-| `Ts` | Discrete sampling period (default: 0.002 s / 500 Hz) |
+| `analyze_handguiding_lab.m` | How do EMA and Butterworth differ at 10 Hz? |
+| `sweep_filter_cutoff.m` | What is the noise/delay/control-error tradeoff across cutoffs? |
+| `analyze_handguiding_sensitivity.m` | Does sensor noise cause unwanted commands at zero force? |
+| `analyze_dynamic_handguiding.m` | How do push, reverse and release affect X velocity? |
+| `analyze_sensor_drift.m` | What happens when bias changes after tare calibration? |
+| `analyze_sensor_coupling.m` | Can a true X force cause a false Y measurement/motion? |
 
-### Calculations and optimization
+Don't run all experiments every time. Run **only** the one you need.
 
-1. **Initial analytical design:** Compute `D_initial = w_design ./ V_target` and `M_initial = D_initial .* rise90_target / log(10)`.
-2. **Constrained tuning:** Use MATLAB **`fmincon` with Sequential Quadratic Programming (SQP)** to optimize all 12 positive parameters. The objective minimizes weighted squared logarithmic deviations from target steady velocities and 90% response times.
-3. **Analytical constraints:** Enforce combined translation/rotation bounds on steady speed, force-reversal acceleration, and ideal release displacement, with the specified margin. These are based on the assumed componentwise wrench envelope and ideal mass–damper model.
-4. **Performance analysis:** Calculate achieved velocities and rise times, continuous-time and Tustin discrete poles, time constants, 10–90% rise times, 2% settling times, and theoretical step-response overshoot.
-5. **Dynamic verification:** Apply the same six-axis push–reverse–release wrench to the initial and optimized **500 Hz Tustin controllers**; compare peak commanded speeds and accelerations and plot all four combined-motion responses **without output saturation**.
+## Where things live
 
-### Outputs and engineering value
-
-The script reports the **optimized `M` and `D` vectors** (X, Y, Z, Rx, Ry, Rz), target-versus-achieved performance tables, optimization cost/iterations, analytical constraint checks, transient-response characteristics, and force-reversal plots. Parameters and response arrays remain available in the MATLAB workspace.
-
-This provides a **repeatable, constraint-based method** for selecting virtual admittance parameters, quantifying the trade-off between responsiveness and commanded motion limits, and supplying candidate coefficients for later embedded implementation.
-
-## Run
-
-In MATLAB, open the repository as the Current Folder, then run:
-
-```matlab
-main
-design_6axis_admittance
+```text
+AdmittanceControl_GP/
+├── setup_handguiding_lab.m       # Daily initialization
+├── main.m                        # Adds paths; standalone compatibility
+├── experiments/                  # The six active MATLAB experiments
+├── Admittance_Controller_6D.slx  # Referenced controller component
+├── FT_Sensor_6D.slx              # Referenced F/T sensor component
+├── 6D/
+│   ├── Simulink/                # Standalone & integrated testbenches
+│   ├── FT_Sensor/               # Sensor config, generator and phase-1 studies
+│   │   └── simulink/            # Standalone sensor testbench
+│   ├── models/                  # Six-axis mathematical functions
+│   ├── analysis/                # Earlier design studies
+│   ├── tests/                   # Existing research tests
+│   └── design_6axis_admittance.m
+└── 1D/                          # Earlier one-axis research (retained)
 ```
 
-`main.m` configures the MATLAB paths. The design script requires **MATLAB Optimization Toolbox** (`fmincon`). Other analysis scripts may require Control System Toolbox; the 1D `.slx` model requires Simulink.
+**Why not move the .slx files?** Subsystem references and MATLAB model lookup
+can depend on filenames and search paths. Their paths are preserved until
+they can be validated interactively in MATLAB. The five six-axis .slx models
+are *not* automatically duplicates: components and testbenches have distinct
+purposes.
 
-## Repository organization
+The generated `*.slxc`, `slprj/` and previous results under
+`6D/FT_Sensor/results/` are ignored by Git but may still exist locally.
+They are not source models. Review any old outputs before deleting them.
 
-- **`1D/`** — single-axis models, discretization comparisons, analysis, and a Simulink model.
-- **`6D/`** — main parameter optimizer, six-axis model functions, analysis experiments, and tests.
+## Scope and limitations
 
-**Scope:** The design inputs and motion limits are illustrative, not hardware-validated specifications. The optimized solution is local to the stated mathematical problem. These checks validate the *nominal commanded Cartesian response*, not actuator dynamics, sensor processing, full robot stability, or physical human–robot interaction safety.
+All sensor parameters are **illustrative**, not vendor specifications.
+Results describe simulated Cartesian *commands*, not measured robot motion
+or physical safety. Robot joint dynamics / Simscape plant integration remains
+a separate Simulation Subteam activity. The optimizer's pass checks don't
+mean every requested speed and T90 target was achieved.
+
+Dependencies include MATLAB, Simulink, Optimization Toolbox and
+Signal Processing Toolbox. Some earlier research scripts use additional
+toolboxes. `main.m` can be used to access older 1D and 6D studies.
+
+No .slx models have been changed by this organization pass.

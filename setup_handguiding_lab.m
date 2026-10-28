@@ -1,11 +1,10 @@
 
 %% HAND-GUIDING LABORATORY — INITIALIZATION
 % Shared parameters for F/T Sensor and Admittance Simulink models
+% Run this once before opening any experiments/ script.
 
 %% 1. Initialize project
 main
-
-addpath(fullfile(pwd, '6D', 'FT_Sensor'));
 
 %% 2. Controller design
 % Calculates optimized six-axis M, D and Ts

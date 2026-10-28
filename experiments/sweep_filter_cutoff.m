@@ -1,5 +1,5 @@
 %% FILTER CUTOFF SWEEP — SIX-AXIS HAND-GUIDING LAB
-% Put this file in the repository root (beside setup_handguiding_lab.m).
+% Run setup_handguiding_lab.m, then run this file from experiments/.
 % Click Run in the MATLAB Editor; do not change any Simulink blocks.
 %
 % Requires existing models:
@@ -14,33 +14,19 @@
 % This is a synthetic, model-level experiment, not physical safety validation.
 
 %% 1. Project paths and setup (without repeated optimization)
-repoRoot = fileparts(mfilename('fullpath'));
+repoRoot = fileparts(fileparts(mfilename('fullpath')));
 addpath(repoRoot);
 addpath(fullfile(repoRoot,'6D'));
 addpath(fullfile(repoRoot,'6D','models'));
-addpath(fullfile(repoRoot,'6D','simulink'));
+addpath(fullfile(repoRoot,'6D','Simulink'));
 addpath(fullfile(repoRoot,'6D','FT_Sensor'));
 addpath(fullfile(repoRoot,'6D','FT_Sensor','simulink'));
 
 required = {'cfg','M','D','Ts','A6','B6','ft_wrench_ts', ...
             'noise_mean','noise_variance','noise_seed'};
-needsSetup = false;
-for i = 1:numel(required)
-    if exist(required{i},'var') ~= 1
-        needsSetup = true;
-        break;
-    end
-end
-if needsSetup
-    setupFile = fullfile(repoRoot,'setup_handguiding_lab.m');
-    assert(isfile(setupFile), 'Missing setup script: %s', setupFile);
-    fprintf('Workspace not initialized. Running setup once.\n');
-    run(setupFile);
-end
-
 for i = 1:numel(required)
     assert(exist(required{i},'var')==1, ...
-        'Missing variable %s. Check setup_handguiding_lab.m.', required{i});
+        'Run setup_handguiding_lab.m first (missing %s).',required{i});
 end
 
 %% 2. Experiment configuration and validation

@@ -14,8 +14,8 @@ assert(exist('A6','var')==1 && exist('B6','var')==1 && ...
        exist('ft_wrench_ts','var')==1 && exist('cfg','var')==1, ...
        'Run setup_handguiding_lab.m first.');
 
-root = fileparts(mfilename('fullpath'));
-addpath(fullfile(root,'6D','simulink'));
+root = fileparts(fileparts(mfilename('fullpath')));
+addpath(fullfile(root,'6D','Simulink'));
 addpath(fullfile(root,'6D','FT_Sensor','simulink'));
 
 t = ft_wrench_ts.Time(:);  % Existing 0:0.002:4 s experiment clock

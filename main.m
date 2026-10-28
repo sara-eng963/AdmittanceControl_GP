@@ -1,11 +1,7 @@
 %% Admittance Control - Graduation Project
 % MATLAB workspace initializer (run this first from the repository).
-% Adds both 1D and 6D scripts and reusable model functions to the path.
-% Does not execute experiments or change any controller parameters.
-
-clearvars;
-clc;
-close all;
+% Adds legacy studies, active experiments and Simulink models to the path.
+% Path-only initializer: does not clear workspace, close plots or run experiments.
 
 projectRoot = fileparts(mfilename('fullpath'));
 
@@ -17,6 +13,10 @@ folders = {
     fullfile(projectRoot, '6D', 'models')
     fullfile(projectRoot, '6D', 'analysis')
     fullfile(projectRoot, '6D', 'tests')
+    fullfile(projectRoot, '6D', 'Simulink')
+    fullfile(projectRoot, '6D', 'FT_Sensor')
+    fullfile(projectRoot, '6D', 'FT_Sensor', 'simulink')
+    fullfile(projectRoot, 'experiments')
 };
 
 for k = 1:numel(folders)

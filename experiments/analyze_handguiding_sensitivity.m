@@ -1,5 +1,5 @@
 %% HAND-GUIDING SENSITIVITY — STAGE 1: ZERO-FORCE MOTION
-% Place beside setup_handguiding_lab.m at the repository root and click Run.
+% Run setup_handguiding_lab.m, then run this file from experiments/.
 %
 % Purpose
 %   With commanded applied wrench identically zero, quantify unwanted
@@ -19,33 +19,20 @@
 % real-hardware tests. It does not prove physical robot motion or safety.
 
 %% 1. Locate the repository and initialize if needed
-repoRoot = fileparts(mfilename('fullpath'));
+repoRoot = fileparts(fileparts(mfilename('fullpath')));
 assert(~isempty(repoRoot), 'Save this script in the repository root first.');
 addpath(repoRoot);
 addpath(fullfile(repoRoot,'6D'));
 addpath(fullfile(repoRoot,'6D','models'));
-addpath(fullfile(repoRoot,'6D','simulink'));
+addpath(fullfile(repoRoot,'6D','Simulink'));
 addpath(fullfile(repoRoot,'6D','FT_Sensor'));
 addpath(fullfile(repoRoot,'6D','FT_Sensor','simulink'));
 
 needed = {'cfg','M','D','Ts','A6','B6','ft_wrench_ts', ...
           'noise_mean','noise_variance','noise_seed'};
-missingSetup = false;
 for j = 1:numel(needed)
-    if exist(needed{j},'var') ~= 1
-        missingSetup = true;
-        break;
-    end
-end
-if missingSetup
-    setupFile = fullfile(repoRoot,'setup_handguiding_lab.m');
-    assert(isfile(setupFile), 'Missing setup script: %s',setupFile);
-    fprintf('Parameters are missing: initializing hand-guiding lab once.\n');
-    run(setupFile);
-end
-for j = 1:numel(needed)
-    assert(exist(needed{j},'var') == 1, ...
-        'Missing %s; review setup_handguiding_lab.m.',needed{j});
+    assert(exist(needed{j},'var')==1, ...
+        'Run setup_handguiding_lab.m first (missing %s).',needed{j});
 end
 
 %% 2. Validate the fixed experiment configuration

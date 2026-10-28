@@ -4,10 +4,11 @@
 % MATLAB + Simulink | 500 Hz | Synthetic experiments only
 
 %% 1. Validate workspace and models
-repoRoot = fileparts(mfilename('fullpath'));
+repoRoot = fileparts(fileparts(mfilename('fullpath')));
 
+addpath(repoRoot);
 addpath(fullfile(repoRoot,'6D','models'));
-addpath(fullfile(repoRoot,'6D','simulink'));
+addpath(fullfile(repoRoot,'6D','Simulink'));
 addpath(fullfile(repoRoot,'6D','FT_Sensor'));
 addpath(fullfile(repoRoot,'6D','FT_Sensor','simulink'));
 
