@@ -219,13 +219,7 @@ SweepByAxis = table(AxisFilter,AxisCutoff_Hz,Axis,AxisMaxError, ...
     AxisRMS,AxisUnits, ...
     'VariableNames', {'Filter','Cutoff_Hz','Axis','MaxError','RMS','Unit'});
 
-% Consistent output directory; does not overwrite the earlier analysis.
-outputDir = fullfile(repoRoot,'6D','FT_Sensor','results', ...
-    'simulink','filter_cutoff_sweep');
-if ~isfolder(outputDir), mkdir(outputDir); end
-writetable(SweepSummary,fullfile(outputDir,'sweep_summary.csv'));
-writetable(SweepByAxis,fullfile(outputDir,'sweep_by_axis.csv'));
-
+% Results are kept in the MATLAB workspace; no exports or directories.
 Metadata = struct('sampling_Hz',Fs, 'Ts',Ts, 'cutoffs_Hz',fcList_Hz, ...
     'seed',noise_seed, 'M',M, 'D',D, 'bias_est',bias_est, ...
     'sensor_model',sensorModel, 'system_model',systemModel, ...
@@ -233,10 +227,6 @@ Metadata = struct('sampling_Hz',Fs, 'Ts',Ts, 'cutoffs_Hz',fcList_Hz, ...
     'step_time_s',stepStart_s, ...
     'experiment_type','synthetic, nominal sensor signals', ...
     'ema_frequency_definition','alpha=1-exp(-2*pi*fc/Fs)');
-
-save(fullfile(outputDir,'sweep_data.mat'), ...
-    'SweepSummary','SweepByAxis','Metadata','t','Wtrue','Videal', ...
-    'WrawBaseline','Wfiltered','Vfiltered','fcList_Hz');
 
 %% 7. Tradeoff figure: use measured quantities; no arbitrary score
 ixEMA = SweepSummary.Filter=="EMA";
@@ -268,9 +258,6 @@ plot(fcList_Hz,RotRMS_rad_s(ixBW),'s-','LineWidth',1.4);
 xlabel('Nominal cutoff (Hz)'); ylabel('RMS rotation error (rad/s)');
 title('Three-axis rotation'); legend('EMA','Butterworth','Location','best'); grid on;
 
-localHideAxesToolbars(fig);
-exportgraphics(fig,fullfile(outputDir,'filter_tradeoffs.png'),'Resolution',180);
-savefig(fig,fullfile(outputDir,'filter_tradeoffs.fig'));
 
 %% 8. Keep a representative 10 Hz velocity comparison
 k10 = find(fcList_Hz==10,1,'first');
@@ -282,14 +269,11 @@ if ~isempty(k10)
     xlabel('Time (s)'); ylabel('X velocity (mm/s)');
     title('Admittance output at 10 Hz nominal cutoff');
     legend('Ideal','EMA','Butterworth','Location','best'); grid on;
-    localHideAxesToolbars(fig2);
-    exportgraphics(fig2,fullfile(outputDir,'velocity_10Hz.png'), ...
-        'Resolution',180);
 end
 
 fprintf('\n=== CUTOFF SWEEP SUMMARY ===\n');
 disp(SweepSummary);
-fprintf('Saved CSV, MAT, PNG and FIG files in:\n%s\n',outputDir);
+fprintf('Sweep complete. Results and interactive figures remain in MATLAB; no files exported.\n');
 fprintf(['Interpretation: lower noise, lower step delay and lower control ' ...
     'error are competing objectives. No single optimum is declared ' ...
     'without design limits.\n']);
@@ -333,16 +317,5 @@ function time90_ms = localT90(t,signal,quiet,plateau,stepStart)
         warning('Fx did not reach 90%% of its measured plateau.');
     else
         time90_ms = 1000*(t(idx)-stepStart);
-    end
-end
-
-function localHideAxesToolbars(fig)
-    ax = findall(fig,'Type','axes');
-    for i = 1:numel(ax)
-        try
-            ax(i).Toolbar.Visible = 'off';
-        catch
-            % Older MATLAB releases may not expose this property.
-        end
     end
 end
