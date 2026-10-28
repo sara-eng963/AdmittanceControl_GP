@@ -2,7 +2,8 @@
 % Requires MATLAB Optimization Toolbox (fmincon).
 % Design model: M * Vdot + D * V = wrench, with diagonal M and D.
 % Values below are illustrative, not verified hardware limits.
-clearvars; clc; close all;
+% Keep previous workspace variables and figures intact on a repeat run.
+% Recompute every design parameter below instead of clearing the session.
 
 %% 1. EDIT ONLY THESE DESIGN REQUIREMENTS
 axisNames = ["X"; "Y"; "Z"; "Rx"; "Ry"; "Rz"];
@@ -10,7 +11,7 @@ axisNames = ["X"; "Y"; "Z"; "Rx"; "Ry"; "Rz"];
 w_design = [10; 8; 6; 0.9; 0.7; 0.5]; % N; N*m for last three
 %Desired steady velocity under those forces / torques
 V_target = [0.10; 0.08; 0.06; 0.15; 0.12; 0.10]; % m/s; rad/s
-%Desired time to reach 900% of steady velocity
+% Desired time to reach 90% of steady velocity
 rise90_target = [0.30; 0.32; 0.35; 0.28; 0.32; 0.30]; % s
 
 speedMax = [0.13; 0.24]; % combined translation [m/s], rotation [rad/s]
