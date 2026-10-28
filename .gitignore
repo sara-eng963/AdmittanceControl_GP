@@ -12,6 +12,9 @@ simulink_codegen/
 # MATLAB code generation
 *.mexw64
 
+# Unverified experimental output data (models are intentionally trackable)
+6D/simulink/results/
+
 # Operating system
 .DS_Store
 Thumbs.db
