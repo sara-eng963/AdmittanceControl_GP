@@ -150,26 +150,7 @@ units = ["mm/s";"mm/s";"mm/s"; ...
 ControllerMetrics = table( ...
     axisNames,maxEMA,maxBW,rmsEMA,rmsBW,units);
 
-%% 9. Save results
-resultsDir = fullfile(repoRoot, ...
-    '6D','FT_Sensor','results','simulink');
-
-if ~isfolder(resultsDir)
-    mkdir(resultsDir);
-end
-
-writetable(SensorMetrics, ...
-    fullfile(resultsDir,'sensor_metrics.csv'));
-
-writetable(ControllerMetrics, ...
-    fullfile(resultsDir,'controller_metrics.csv'));
-
-save(fullfile(resultsDir,'experiment.mat'), ...
-    'cfg','M','D','Ts','bias_est','t','Wtrue', ...
-    'Wraw','Wema','Wbw','Videal','Vema','Vbw', ...
-    'SensorMetrics','ControllerMetrics');
-
-%% 10. Generate comparison plot
+%% 9. Generate comparison plot
 fig = figure('Name','Hand-Guiding Filter Comparison');
 
 plot(t,1000*Videal(:,1),'k','LineWidth',1.5);
@@ -183,17 +164,14 @@ ylabel('X velocity (mm/s)');
 title('Sensor Filtering Effect on Admittance');
 grid on;
 
-exportgraphics(fig, ...
-    fullfile(resultsDir,'velocity_comparison.png'));
-
-%% 11. Results summary
+%% 10. Results summary
 disp('=== SENSOR PERFORMANCE ===');
 disp(SensorMetrics);
 
 disp('=== SIX-AXIS CONTROLLER PERFORMANCE ===');
 disp(ControllerMetrics);
 
-fprintf('\nAnalysis completed. Results: %s\n',resultsDir);
+fprintf('\nAnalysis complete. Tables and plots are available in MATLAB. No files exported.\n');
 
 %% Local helper functions
 function in = makeInput(model,p,stopTime)
