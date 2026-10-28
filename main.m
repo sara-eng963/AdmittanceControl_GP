@@ -16,6 +16,7 @@ folders = {
     fullfile(projectRoot, '6D', 'Simulink')
     fullfile(projectRoot, '6D', 'FT_Sensor')
     fullfile(projectRoot, '6D', 'FT_Sensor', 'simulink')
+    fullfile(projectRoot, '6D', 'FT_Sensor', 'tests')
     fullfile(projectRoot, 'experiments')
 };
 
