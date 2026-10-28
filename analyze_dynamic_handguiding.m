@@ -54,7 +54,9 @@ load_system(sensorModel);
 load_system(systemModel);
 
 tareRun = sim(modelInput(sensorModel,p,t(end)));
-raw = tareRun.get('ft_raw_ts').Data;    % Before calibration
+rawTS = tareRun.get('ft_raw_ts');
+assert(isa(rawTS,'timeseries'), 'Raw F/T output is missing.');
+raw = squeeze(rawTS.Data);              % Before calibration
 assert(isequal(size(raw),[N 6]), 'Unexpected raw sensor dimensions.');
 quiet = t>=0.1 & t<0.4;
 p.bias_est = mean(raw(quiet,:),1)';
@@ -93,7 +95,10 @@ for j=1:numel(cutoffs)
         numel(twist.Time)==N && ...
         max(abs(twist.Time(:)-t))<1e-9, ...
         'Velocity logging or sample time changed.');
-    Vema(:,:,j) = squeeze(twist.Data);
+    Vcase = squeeze(twist.Data);
+    assert(isequal(size(Vcase),[N 6]), ...
+        'Expected one velocity column per Cartesian axis.');
+    Vema(:,:,j) = Vcase;
 end
 
 %% 6. Answer two practical questions
@@ -134,7 +139,7 @@ plot(t,W(:,1),'LineWidth',1.4);
 ylabel('Applied Fx (N)'); title('Push, reverse, release'); grid on;
 
 nexttile;
-plot(t,1000*Videal(:,1),'k','LineWidth',1.5); hold on;
+plot(t,1000*Videal(:,1),'LineWidth',1.5); hold on;
 for j=1:3
     plot(t,1000*Vema(:,1,j),'--','LineWidth',1.1);
 end
