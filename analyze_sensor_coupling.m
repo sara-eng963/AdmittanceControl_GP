@@ -66,7 +66,10 @@ for k = 1:2
     sensorOut = sim(runModel('FT_Sensor_Lab',p,t(end)));
     rawTS = sensorOut.get('ft_raw_ts');
     assert(isa(rawTS,'timeseries'), 'Missing raw sensor timeseries.');
-    raw(:,:,k) = reshape(rawTS.Data,N,6);
+    rawCase = squeeze(rawTS.Data);
+    if isequal(size(rawCase),[6 N]), rawCase = rawCase'; end
+    assert(isequal(size(rawCase),[N 6]), 'Expected N-by-6 raw wrench.');
+    raw(:,:,k) = rawCase;
 
     % Calibrate once using the OFF case during the unloaded interval.
     % The true wrench is zero there, so coupling cannot affect the tare.
@@ -110,7 +113,7 @@ disp(CouplingSummary);
 
 %% 5. See the cause and effect; leave everything inside MATLAB
 figure('Name','Cross-axis coupling — X force to Y motion');
-tiledlayout(3,1);
+tiledlayout(4,1);
 
 nexttile;
 plot(t,W(:,1),'LineWidth',1.3);
@@ -121,12 +124,13 @@ plot(t,extraFy,'LineWidth',1.3);
 ylabel('False Fy (N)'); title('Coupling-induced Y measurement'); grid on;
 
 nexttile;
-plot(t,1000*extraVy,'LineWidth',1.3); hold on;
-plot(t,1000*extraY,'--','LineWidth',1.2);
-xlabel('Time (s)'); title('Unintended Y command');
-ylabel('mm/s or mm');
-legend('Extra Y velocity (mm/s)','Integrated Y command (mm)', ...
-    'Location','best'); grid on;
+plot(t,1000*extraVy,'LineWidth',1.3);
+ylabel('Extra Vy (mm/s)'); title('Unwanted Y velocity'); grid on;
+
+nexttile;
+plot(t,1000*extraY,'LineWidth',1.3);
+xlabel('Time (s)'); ylabel('Extra Y (mm)');
+title('Integrated unwanted Y displacement command'); grid on;
 
 %% Helper: change simulation variables without changing saved SLX models
 function in = runModel(model,p,stopTime)
