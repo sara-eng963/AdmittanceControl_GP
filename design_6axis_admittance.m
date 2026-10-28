@@ -92,6 +92,28 @@ disp(table(axisNames,w_design,V_target,V_achieved, ...
 fprintf('Optimization cost: %.6g\n',objectiveValue);
 fprintf('Solver iterations: %d\n',output.iterations);
 
+%% Additional transient-response specifications
+
+tau = M ./ D;
+
+riseTime_10_90 = log(9) * tau;
+
+settlingTime_2percent = -log(0.02) * tau;
+
+overshoot_percent = zeros(6,1); % Ideal first-order velocity step
+
+transientResults = table( ...
+    axisNames, tau, riseTime_10_90, ...
+    rise90_achieved, settlingTime_2percent, ...
+    overshoot_percent, ...
+    'VariableNames', { ...
+    'Axis', 'TimeConstant', 'RiseTime_10_90', ...
+    'TimeTo90Percent', 'SettlingTime_2Percent', ...
+    'OvershootPercent'});
+
+disp('=== TRANSIENT RESPONSE SPECIFICATIONS ===');
+disp(transientResults);
+
 %% 5. Analytical combined-motion verification
 % The factor 2 for acceleration bounds applies to reversal within
 % the assumed componentwise wrench envelope (+/- w_design),
