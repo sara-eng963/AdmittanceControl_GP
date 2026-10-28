@@ -95,6 +95,9 @@ baseSeed = double(noise_seed(:));
 tareSeed = baseSeed;
 testSeed = baseSeed + 1000;
 baseNoiseVar = double(noise_variance(:));
+baseNoiseStd = sqrt(baseNoiseVar);
+assert(max(abs(baseNoiseStd - double(cfg.sensor.noise_std(:)))) < 1e-12, ...
+    'Noise variables and cfg.sensor.noise_std disagree; rerun setup.');
 
 p = struct('cfg',cfg, 'M',M, 'D',D, 'Ts',Ts, ...
     'A6',A6, 'B6',B6, 'ft_wrench_ts',zeroWrenchTS, ...
@@ -137,10 +140,15 @@ IntegratedUnits = strings(nCases*6,1);
 VelocityTraces = zeros(N,6,nF,nL);
 IntegratedTraces = zeros(N,6,nF,nL);
 BiasEstimates = zeros(nL,6);
+RawFxNoiseStd_N = zeros(nL,1);  % One diagnostic per noise level
 
 for iL = 1:nL
     factor = noiseScales(iL);
     p.noise_variance = baseNoiseVar*(factor^2);
+    % The Gaussian Random Number block may read cfg.sensor.noise_std
+    % directly rather than the separate noise_variance workspace variable.
+    % Override both so the requested scaling reaches either block interface.
+    p.cfg.sensor.noise_std = baseNoiseStd*factor;
 
     % Tare is estimated from one independent unloaded sensor run per level.
     % Keep the same tare across cutoffs to avoid confounding comparisons.
@@ -148,6 +156,26 @@ for iL = 1:nL
     p.bias_est = zeros(6,1);
     tareOut = sim(localInput(sensorModel,p,t(end)));
     rawTare = localSignal(tareOut,'ft_raw_ts',t);
+
+    % Validate scaling at the actual Simulink sensor output, before tare.
+    % Differencing suppresses constant bias and isolates white-noise jitter.
+    fxQuiet = rawTare(tareWindow,1);
+    RawFxNoiseStd_N(iL) = std(diff(fxQuiet))/sqrt(2);
+    assert(RawFxNoiseStd_N(iL) > 0, ...
+        'No observable raw Fx sensor noise; inspect the sensor model.');
+
+    if iL > 1
+        observed = RawFxNoiseStd_N(iL)/RawFxNoiseStd_N(1);
+        expected = factor/noiseScales(1);
+        assert(abs(observed/expected - 1) < 0.30, ...
+            ['Sensor noise scaling did not reach FT_Sensor_Lab: ' ...
+             'observed raw Fx ratio %.3f, expected %.3f. ' ...
+             'Check the Gaussian Random Number variance expression and ' ...
+             'referenced-subsystem workspace overrides.'], ...
+            observed,expected);
+    end
+    fprintf('  Raw sensor Fx noise: %.5f N at %.1fx\n', ...
+        RawFxNoiseStd_N(iL),factor);
     p.bias_est = mean(rawTare(tareWindow,:),1)';
     BiasEstimates(iL,:) = p.bias_est(:)';
 
@@ -295,7 +323,11 @@ title('Accumulated requested displacement (ZOH)'); grid on;
 %% 6. Display summary; do not declare arbitrary acceptability thresholds
 fprintf('\n=== ZERO-FORCE HAND-GUIDING SENSITIVITY (EMA) ===\n');
 disp(ZeroForceSummary);
-fprintf('Results available in ZeroForceSummary and ZeroForceByAxis.\n');
+NoiseScaleCheck = table(noiseScales(:),RawFxNoiseStd_N, ...
+    'VariableNames',{'NoiseScale','RawFxNoiseStd_N'});
+fprintf('\n=== SENSOR NOISE SCALING CHECK ===\n');
+disp(NoiseScaleCheck);
+fprintf('Results available in ZeroForceSummary, ZeroForceByAxis, and NoiseScaleCheck.\n');
 fprintf('Figures remain open in MATLAB. No files were exported.\n');
 fprintf(['All values are synthetic commanded velocity and time-integrated ' ...
     'command, NOT measured motion. Results use one independent evaluation ' ...
