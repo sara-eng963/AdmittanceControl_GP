@@ -3,15 +3,13 @@
 *.m~
 *.autosave
 *.slxc
-
-# Simulink generated files
 slprj/
 codegen/
 simulink_codegen/
-
-# MATLAB code generation
 *.mexw64
 
-# Operating system
+# Generated F/T lab artifacts
+6D/FT_Sensor/results/
+
 .DS_Store
 Thumbs.db
