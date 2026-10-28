@@ -1,25 +1,28 @@
-# F/T Sensor Laboratory — Phase 1
+# F/T Sensor — MATLAB research components
 
-Synthetic-only 500 Hz six-axis force/torque signal bench. No robot simulation, hardware interface, or motor commands.
+There are two uses for this folder:
+
+- `ft_lab_config.m` and `ft_generate_wrench.m` provide test inputs and
+  synthetic sensor characteristics to the active Simulink hand-guiding lab.
+- `run_ft_laboratory.m` is the earlier MATLAB-only synthetic sensor study.
+  It includes additional illustrative quantization/saturation modeling not
+  yet included in the referenced Simulink sensor component.
 
 ## Run
 
-MATLAB with Signal Processing Toolbox required. From repo root:
+From the repository root in MATLAB:
 
 ```matlab
 main
-addpath(fullfile(pwd,'6D','FT_Sensor'))
-addpath(fullfile(pwd,'6D','FT_Sensor','tests'))
-test_ft_lab_phase1
-results = run_ft_laboratory;
+test_ft_lab_phase1                % Original numerical checks
+results = run_ft_laboratory;     % Optional, standalone MATLAB-only study
 ```
 
-Generated artifacts (in ignored results/ folder): signals.csv, metrics.csv, experiment.mat and fx_filter_comparison.png.
+This runs without automatic file exports. Tables and figures appear in MATLAB.
 
-The scripts generate an analytic six-axis wrench, synthetic Gaussian noise, bias, drift, same-unit cross-axis coupling, saturation, and quantization. They compare raw measurements to causal EMA and second-order Butterworth low-pass filtering.
+For the **integrated controller**, instead run `setup_handguiding_lab.m` and
+an appropriate script from `experiments/` (see the repository README).
 
-Metrics include the unloaded-window Fx noise and offset, first threshold-crossing response time, and separate force and torque RMS errors. The 10 Hz cutoff and all sensor characteristics are illustrative, not real hardware specifications. No packet or serial protocol is implemented in this phase.
-
-Future: phase 2 integrates the existing Tustin controller; phase 3 tests portable sensor-protocol parsing through WSL byte streams; phase 4 characterizes and replays measurements from actual USB–RS485 hardware.
-
-MATLAB is not available in the authoring environment. Tests are written but **not yet executed in MATLAB**.
+All sensor parameters are synthetic, not measured vendor specifications.
+The Simulink sensor reference is `FT_Sensor_6D.slx` at repository root;
+`FT_Sensor_Lab.slx` in this folder is a standalone testbench.
