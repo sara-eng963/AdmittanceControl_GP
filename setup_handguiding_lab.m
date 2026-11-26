@@ -43,7 +43,11 @@ alpha = 1 - exp(-2*pi*fc/Fs);
 
 %% 8. Butterworth low-pass filter
 [bButter, aButter] = butter(2, fc/(Fs/2), 'low');
+%% 9. Automatic F/T sensor tare calibration
 
+[bias_est, noise_seed] = tare_ft_sensor( ...
+    cfg, noise_mean, noise_variance, ...
+    alpha, bButter, aButter);
 %% 9. Initialization complete
 fprintf('\n=== HAND-GUIDING LAB INITIALIZED ===\n');
 fprintf('Sampling frequency: %.0f Hz\n', Fs);
@@ -51,3 +55,4 @@ fprintf('Sampling period: %.3f ms\n', Ts*1000);
 fprintf('Filter cutoff: %.1f Hz\n', fc);
 fprintf('EMA alpha: %.6f\n', alpha);
 fprintf('Wrench samples: %d\n', numel(t));
+
